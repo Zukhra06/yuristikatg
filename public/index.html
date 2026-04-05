@@ -1,14 +1,630 @@
-⚖️
-Юристика
-Образовательная игра по праву
-Играйте с друзьями с разных устройств
-🎮
-Создать игру
-Пригласить друзей по ссылке
-🔗
-Войти
-Ввести код комнаты
-📋 Кейсы
-⚖️ Кодексы
-🔨 Судья
-📱 Каждый со своего телефона
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Юристика</title>
+<!-- Telegram WebApp SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* ── TG CSS VARS ── */
+:root {
+  --tg-bg:      var(--tg-theme-bg-color, #ffffff);
+  --tg-sec:     var(--tg-theme-secondary-bg-color, #f4f4f5);
+  --tg-txt:     var(--tg-theme-text-color, #1a1912);
+  --tg-hint:    var(--tg-theme-hint-color, #6b685e);
+  --tg-link:    var(--tg-theme-link-color, #1b3a6b);
+  --tg-btn:     var(--tg-theme-button-color, #1b3a6b);
+  --tg-btnTxt:  var(--tg-theme-button-text-color, #ffffff);
+  --tg-bdr:     rgba(0,0,0,0.1);
+  --gold:       #C9A84C;
+  --green:      #1A9968;
+  --red:        #C44472;
+  --r:          12px;
+  --safe-b:     env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--tg-bg)}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--tg-bg);
+  color:var(--tg-txt);min-height:100vh;overscroll-behavior:none}
+input,button{font-family:inherit}
+
+/* ── SCREENS ── */
+.scr{display:none;flex-direction:column;min-height:100vh;padding:16px 16px calc(16px + var(--safe-b))}
+.scr.on{display:flex}
+
+/* ── SHARED ── */
+.ttl{font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.sub{font-size:14px;color:var(--tg-hint);line-height:1.5;margin-top:4px}
+.card{background:var(--tg-sec);border-radius:var(--r);padding:16px}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--tg-hint);margin-bottom:8px;display:block}
+.inp{width:100%;padding:12px 14px;border:none;border-radius:10px;
+  background:var(--tg-bg);color:var(--tg-txt);font-size:16px;outline:none;
+  box-shadow:inset 0 0 0 1px var(--tg-bdr);transition:.15s}
+.inp:focus{box-shadow:inset 0 0 0 2px var(--tg-btn)}
+.inp.code{font-size:24px;font-weight:700;text-align:center;letter-spacing:.15em;text-transform:uppercase}
+.err{font-size:13px;color:var(--red);min-height:18px;margin-top:6px}
+.btn{width:100%;padding:14px;background:var(--tg-btn);color:var(--tg-btnTxt);
+  border:none;border-radius:var(--r);font-size:16px;font-weight:600;cursor:pointer;
+  transition:.15s;margin-top:12px;letter-spacing:.01em}
+.btn:active{transform:scale(.97);opacity:.9}
+.btn.sec{background:var(--tg-sec);color:var(--tg-txt);box-shadow:inset 0 0 0 1px var(--tg-bdr)}
+.btn.green{background:var(--green);color:#fff}
+.btn.red{background:var(--red);color:#fff}
+.btn.sm{padding:10px;font-size:14px;border-radius:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.gap{height:12px}
+
+/* ── HOME ── */
+.home-hero{text-align:center;padding:32px 0 24px}
+.hero-ic{font-size:64px;margin-bottom:12px;display:block}
+.hero-ttl{font-size:32px;font-weight:700;color:var(--tg-txt);margin-bottom:8px}
+.hero-sub{font-size:15px;color:var(--tg-hint);line-height:1.55}
+.action-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.ac{background:var(--tg-sec);border-radius:var(--r);padding:18px 14px;text-align:center;cursor:pointer;transition:.15s}
+.ac:active{transform:scale(.96)}
+.ac.pri{background:var(--tg-btn)}
+.ac-i{font-size:28px;margin-bottom:8px}
+.ac-t{font-size:14px;font-weight:700;color:var(--tg-txt)}
+.ac.pri .ac-t{color:var(--tg-btnTxt)}
+.ac-s{font-size:11px;color:var(--tg-hint);margin-top:3px;line-height:1.3}
+.ac.pri .ac-s{color:rgba(255,255,255,.65)}
+.home-panel{background:var(--tg-sec);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.home-feats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px}
+.feat-pill{font-size:12px;color:var(--tg-hint);background:var(--tg-sec);
+  border-radius:20px;padding:5px 11px}
+
+/* ── LOBBY ── */
+.lobby-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.lobby-logo{font-size:18px;font-weight:700}
+.code-block{background:var(--tg-sec);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:12px}
+.code-display{font-size:40px;font-weight:700;letter-spacing:.2em;color:var(--tg-btn);margin-bottom:12px}
+.btn-share{background:rgba(201,168,76,.15);color:var(--gold);border:none;border-radius:10px;
+  padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.btn-share:active{opacity:.75}
+.player-list{display:flex;flex-direction:column;gap:2px}
+.pr{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px}
+.pr:nth-child(odd){background:var(--tg-sec)}
+.pdot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.pname{font-size:14px;font-weight:600;flex:1}
+.host-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:3px 8px;border-radius:8px;background:rgba(201,168,76,.15);color:var(--gold)}
+.pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pack-itm{background:var(--tg-sec);border-radius:10px;padding:12px;cursor:pointer;
+  transition:.15s;border:2px solid transparent;position:relative}
+.pack-itm.sel{border-color:var(--tg-btn);background:var(--tg-bg)}
+.pack-itm.locked{opacity:.7}
+.pack-itm:active{transform:scale(.96)}
+.pi-i{font-size:20px;margin-bottom:4px}
+.pi-n{font-size:12px;font-weight:700}
+.pi-t{font-size:10px;margin-top:2px;font-weight:600}
+.pi-lk{position:absolute;top:8px;right:8px;font-size:12px}
+.lobby-info{text-align:center;font-size:13px;color:var(--tg-hint);padding:10px 0}
+
+/* ── GAME ── */
+.game-topbar{display:flex;gap:6px;flex-wrap:wrap;overflow-x:auto;padding-bottom:4px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.game-topbar::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;
+  background:var(--tg-sec);font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.chip.cur{background:var(--tg-btn);color:var(--tg-btnTxt)}
+.chip.cur .cpts{color:rgba(255,255,255,.7)}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cpts{color:var(--tg-hint);font-size:10px;font-weight:500}
+
+/* Board — horizontal scroll strip */
+.board-area{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;margin:10px 0}
+.board{display:grid;grid-template-columns:repeat(8,54px);grid-template-rows:repeat(5,54px);
+  gap:3px;flex-shrink:0;width:max-content}
+.cell{border-radius:8px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:7px;font-weight:700;text-align:center;
+  line-height:1.2;text-transform:uppercase;letter-spacing:.03em;position:relative;padding:2px}
+.ci{font-size:13px;line-height:1;margin-bottom:1px}
+.c-старт{background:#E6F4DA;color:#27500A}
+.c-финиш{background:#FDF0D5;color:#633806}
+.c-кейс{background:#DAE8F8;color:#0C3D6E}
+.c-термин{background:#EAEBFE;color:#2E2A8C}
+.c-кодекс{background:#D5F2EA;color:#065540}
+.c-судья{background:#FCEDF3;color:#721C3B}
+.c-бонус{background:#FDF7DF;color:#7A5A00}
+.c-штраф{background:#FDEAEA;color:#7A1818}
+.toks{position:absolute;bottom:2px;right:2px;display:flex;flex-wrap:wrap;gap:1px;max-width:22px;justify-content:flex-end}
+.tok{width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.9)}
+.bcenter{grid-column:2/8;grid-row:2/5;background:var(--tg-bg);
+  border-radius:12px;box-shadow:inset 0 0 0 1px var(--tg-bdr);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:10px}
+.bc-t{font-size:13px;font-weight:700;text-align:center}
+.bc-s{font-size:11px;color:var(--tg-hint);text-align:center}
+.bc-n{font-size:11px;color:var(--tg-hint);background:var(--tg-sec);border-radius:8px;
+  padding:5px 10px;text-align:center}
+.dice{width:50px;height:50px;border-radius:12px;background:var(--tg-sec);
+  border:none;cursor:pointer;font-size:26px;display:flex;align-items:center;
+  justify-content:center;transition:.12s;font-family:inherit}
+.dice:active:not(:disabled){transform:scale(.92)}
+.dice:disabled{opacity:.3;cursor:not-allowed}
+@keyframes spin{0%{transform:rotate(0)}30%{transform:rotate(-25deg) scale(1.2)}70%{transform:rotate(20deg) scale(1.2)}100%{transform:rotate(0) scale(1)}}
+.spinning{animation:spin .4s ease-out;pointer-events:none}
+.dval{font-size:22px;font-weight:700;color:var(--tg-btn);min-height:28px;display:flex;align-items:center}
+
+/* Game bottom action */
+.game-action{background:var(--tg-sec);border-radius:var(--r);padding:12px 14px;text-align:center;margin-top:4px}
+.ga-t{font-size:14px;font-weight:700}
+.ga-s{font-size:12px;color:var(--tg-hint);margin-top:3px}
+.vbadge{display:inline-block;background:#D5F2EA;color:#065540;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  display:flex;align-items:flex-end;justify-content:center;z-index:900;padding:0}
+.msheet{background:var(--tg-bg);border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + var(--safe-b));width:100%;max-height:90vh;
+  overflow-y:auto;animation:up .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.drag-bar{width:36px;height:4px;background:var(--tg-bdr);border-radius:2px;margin:0 auto 18px}
+.mbadge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:20px;margin-bottom:12px}
+.mb-кейс{background:#DAE8F8;color:#0C3D6E}
+.mb-термин{background:#EAEBFE;color:#2E2A8C}
+.mb-кодекс{background:#D5F2EA;color:#065540}
+.mb-судья{background:#FCEDF3;color:#721C3B}
+.mword{font-size:26px;font-weight:700;color:var(--tg-btn);margin-bottom:6px;line-height:1.2}
+.mq{font-size:15px;font-weight:500;line-height:1.6;margin-bottom:12px}
+.msub{font-size:13px;color:var(--tg-hint);margin-bottom:10px}
+.tbar-wrap{height:4px;background:var(--tg-sec);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.tbar{height:100%;border-radius:2px;background:var(--tg-btn);transition:width .9s linear,background .3s}
+.tlbl{font-size:12px;color:var(--tg-hint);margin-bottom:12px}
+.hint-box{background:var(--tg-sec);border-radius:10px;padding:12px;font-size:13px;
+  color:var(--tg-hint);line-height:1.6;margin-bottom:12px;display:none;
+  border-left:3px solid var(--gold)}
+.hint-box.vis{display:block}
+.vote-hd{font-size:13px;font-weight:700;margin:8px 0 12px}
+.vrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.vdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.vnm{font-size:13px;font-weight:600;flex:1}
+.vbtns{display:flex;gap:6px}
+.vb{padding:6px 14px;border:none;border-radius:8px;background:var(--tg-sec);
+  font-size:12px;font-weight:700;cursor:pointer;color:var(--tg-hint);
+  transition:.15s;font-family:inherit}
+.vb:active{transform:scale(.94)}
+.vb.vfor{background:#D5F2EA;color:#065540}
+.vb.vagn{background:#FDEAEA;color:#7A1818}
+.vstatus{font-size:13px;color:var(--tg-hint);text-align:center;padding:12px;
+  background:var(--tg-sec);border-radius:10px;margin-top:8px}
+
+/* Sub modal */
+.sub-hero{text-align:center;padding:8px 0 16px}
+.sub-i{font-size:44px;margin-bottom:10px}
+.sub-ttl{font-size:22px;font-weight:700;color:var(--tg-btn);margin-bottom:6px}
+.sub-sub{font-size:14px;color:var(--tg-hint);line-height:1.5}
+.sub-packs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.sp{background:var(--tg-sec);border-radius:10px;padding:10px;font-size:12px;font-weight:600}
+.price-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.price-btn{border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;
+  border:2px solid var(--tg-bdr);background:var(--tg-sec);transition:.15s;font-family:inherit}
+.price-btn:active{transform:scale(.96)}
+.price-btn.sel{border-color:var(--tg-btn);background:var(--tg-bg)}
+.pb-p{font-size:18px;font-weight:700;color:var(--tg-btn)}
+.pb-s{font-size:11px;color:var(--tg-hint);margin-top:2px}
+.pb-sv{font-size:10px;font-weight:700;color:#065540;background:#D5F2EA;
+  border-radius:6px;padding:2px 6px;margin-top:4px;display:inline-block}
+
+/* ── WINNER ── */
+#s-winner{background:var(--tg-bg);justify-content:center;align-items:center}
+.win-inner{text-align:center;padding:48px 20px 40px;max-width:400px;width:100%}
+.trophy{font-size:72px;margin-bottom:14px;animation:pop .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1);opacity:1}}
+.w-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--tg-hint);margin-bottom:8px}
+.w-name{font-size:30px;font-weight:700;color:var(--tg-btn);margin-bottom:24px}
+.w-scores{background:var(--tg-sec);border-radius:var(--r);padding:16px;margin-bottom:20px}
+.w-row{display:flex;align-items:center;gap:12px;padding:9px 0;
+  border-bottom:1px solid var(--tg-bdr)}
+.w-row:last-child{border-bottom:none}
+.w-rank{font-size:16px;width:26px;color:var(--tg-hint)}
+.w-rank.g{color:var(--gold)}
+.w-dot{width:12px;height:12px;border-radius:50%}
+.w-pn{flex:1;font-size:14px;font-weight:600;text-align:left}
+.w-pts{font-size:22px;font-weight:700;color:var(--tg-btn)}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="s-home" class="scr on">
+  <div class="home-hero">
+    <span class="hero-ic">⚖️</span>
+    <div class="hero-ttl">Юристика</div>
+    <div class="hero-sub">Образовательная игра по праву<br>Играйте с друзьями с разных устройств</div>
+  </div>
+  <div class="action-cards">
+    <div class="ac pri" onclick="showP('c')">
+      <div class="ac-i">🎮</div>
+      <div class="ac-t">Создать игру</div>
+      <div class="ac-s">Пригласить друзей по ссылке</div>
+    </div>
+    <div class="ac" onclick="showP('j')">
+      <div class="ac-i">🔗</div>
+      <div class="ac-t">Войти</div>
+      <div class="ac-s">Ввести код комнаты</div>
+    </div>
+  </div>
+  <div id="p-create" class="home-panel" style="display:none">
+    <label class="lbl">Ваше имя</label>
+    <input id="cn" class="inp" placeholder="Иван Иванов" maxlength="20">
+    <div id="cerr" class="err"></div>
+    <button class="btn" onclick="doCreate()">Создать комнату →</button>
+  </div>
+  <div id="p-join" class="home-panel" style="display:none">
+    <label class="lbl">Ваше имя</label>
+    <input id="jn" class="inp" placeholder="Иван Иванов" maxlength="20">
+    <div class="gap"></div>
+    <label class="lbl">Код комнаты</label>
+    <input id="jc" class="inp code" placeholder="ABC123" maxlength="6">
+    <div id="jerr" class="err"></div>
+    <button class="btn" onclick="doJoin()">Войти →</button>
+  </div>
+  <div class="home-feats">
+    <div class="feat-pill">📋 Кейсы</div>
+    <div class="feat-pill">⚖️ Кодексы</div>
+    <div class="feat-pill">🔨 Судья</div>
+    <div class="feat-pill">📱 Каждый со своего телефона</div>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div id="s-lobby" class="scr">
+  <div class="lobby-hd">
+    <div class="lobby-logo">⚖️ Юристика</div>
+    <button class="btn sec sm" onclick="goHome()" style="width:auto;margin:0">← Назад</button>
+  </div>
+  <div class="code-block">
+    <div class="lbl">Код комнаты — поделитесь с друзьями</div>
+    <div class="code-display" id="code-disp">------</div>
+    <button class="btn-share" onclick="shareRoom()">🔗 Поделиться</button>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="lbl">Игроки (<span id="pcnt">0</span>/6)</div>
+    <div class="player-list" id="plist"></div>
+  </div>
+  <div class="card" id="pack-sec" style="margin-bottom:12px">
+    <div class="lbl">Набор карточек</div>
+    <div class="pack-grid" id="pack-grid"></div>
+  </div>
+  <div class="lobby-info" id="lob-info"></div>
+  <button class="btn" id="start-btn" onclick="doStart()" style="display:none">Начать игру →</button>
+</div>
+
+<!-- GAME -->
+<div id="s-game" class="scr">
+  <div class="game-topbar" id="topbar"></div>
+  <div class="board-area"><div class="board" id="board"></div></div>
+  <div class="game-action" id="action"></div>
+</div>
+
+<!-- WINNER -->
+<div id="s-winner" class="scr">
+  <div class="win-inner" id="win-inner"></div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal" style="display:none">
+  <div class="msheet" id="msheet">
+    <div class="drag-bar"></div>
+    <div id="mcontent"></div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── TELEGRAM INIT ──────────────────────────────────────────────────────────
+const TG = window.Telegram?.WebApp;
+if (TG) {
+  TG.ready();
+  TG.expand();
+  TG.setHeaderColor?.('bg_color');
+}
+function haptic(type='light') { TG?.HapticFeedback?.impactOccurred?.(type); }
+function hapticNotif(type='success') { TG?.HapticFeedback?.notificationOccurred?.(type); }
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────
+const CELL_POS=[
+  [1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],
+  [8,2],[8,3],[8,4],
+  [8,5],[7,5],[6,5],[5,5],[4,5],[3,5],[2,5],[1,5],
+  [1,4],[1,3],[1,2]
+];
+const CELL_T=['старт','кейс','термин','кодекс','судья','кейс','бонус','термин',
+  'кодекс','кейс','судья','термин','кодекс','кейс','судья','термин',
+  'штраф','кодекс','кейс','судья','термин','финиш'];
+const CI={старт:'🚀',финиш:'🏆',кейс:'📋',термин:'📖',кодекс:'⚖️',судья:'🔨',бонус:'⭐',штраф:'❌'};
+const CL={старт:'Старт',финиш:'Финиш',кейс:'Кейс',термин:'Термин',кодекс:'Кодекс',судья:'Судья',бонус:'+2',штраф:'−1'};
+const DF=['⚀','⚁','⚂','⚃','⚄','⚅'];
+const TL={кейс:'📋 Кейс',термин:'📖 Термин',кодекс:'⚖️ Кодекс',судья:'🔨 Судья'};
+const PINFO={
+  general:      {name:'Общее право',     free:true},
+  criminal:     {name:'Уголовное право', free:false},
+  civil:        {name:'Гражд. процесс',  free:false},
+  family:       {name:'Семейное право',  free:false},
+  labor:        {name:'Трудовое право',  free:false}
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+const sock=io();
+let myId=null,code=null,amHost=false,players=[],gs=null;
+let selPack='general',subbed=localStorage.getItem('ys')==='1';
+let tmr=null,tsec=0;
+
+// ── SOCKET ────────────────────────────────────────────────────────────────
+sock.on('created',d=>{myId=d.myId;code=d.code;amHost=true;players=d.players;goLobby();});
+sock.on('joined', d=>{myId=d.myId;code=d.code;amHost=false;players=d.players;goLobby();});
+sock.on('err',    m=>{
+  document.getElementById('cerr').textContent=m;
+  document.getElementById('jerr').textContent=m;
+  hapticNotif('error');
+});
+sock.on('lobby',  d=>{players=d.players;renderPlayers();updateStart();});
+sock.on('started',d=>{gs=d.gs;show('s-game');renderGame();haptic('medium');});
+sock.on('update', d=>{
+  gs=d.gs; renderGame();
+  if((gs.phase==='card'||gs.phase==='vote')&&gs.card) renderModal();
+  else closeModal();
+});
+sock.on('ended',  d=>{gs=d.gs;closeModal();renderWinner();hapticNotif('success');});
+
+// ── HOME ──────────────────────────────────────────────────────────────────
+function showP(p){
+  document.getElementById('p-create').style.display=p==='c'?'block':'none';
+  document.getElementById('p-join').style.display  =p==='j'?'block':'none';
+  haptic();
+  setTimeout(()=>document.getElementById(p==='c'?'cn':'jn')?.focus(),80);
+}
+function doCreate(){
+  const name=(document.getElementById('cn').value||'').trim();
+  if(!name){document.getElementById('cerr').textContent='Введите ваше имя';hapticNotif('error');return;}
+  document.getElementById('cerr').textContent='';
+  haptic('medium'); sock.emit('create',{name});
+}
+function doJoin(){
+  const name=(document.getElementById('jn').value||'').trim();
+  const c=(document.getElementById('jc').value||'').trim().toUpperCase();
+  if(!name){document.getElementById('jerr').textContent='Введите ваше имя';hapticNotif('error');return;}
+  if(c.length<4){document.getElementById('jerr').textContent='Введите код комнаты';hapticNotif('error');return;}
+  document.getElementById('jerr').textContent='';
+  haptic('medium'); sock.emit('join',{code:c,name});
+}
+// auto-fill from URL
+(()=>{
+  const c=new URLSearchParams(location.search).get('room');
+  if(c){showP('j');const i=document.getElementById('jc');if(i)i.value=c.toUpperCase();}
+})();
+
+// ── LOBBY ─────────────────────────────────────────────────────────────────
+function goLobby(){
+  document.getElementById('code-disp').textContent=code;
+  history.replaceState({},'','?room='+code);
+  renderPlayers(); renderPackGrid(); updateStart();
+  document.getElementById('pack-sec').style.display=amHost?'block':'none';
+  show('s-lobby');
+}
+function renderPlayers(){
+  const cols=['#E05D28','#1A9968','#6B5FCC','#D4832A','#C44472','#2871CC'];
+  document.getElementById('pcnt').textContent=players.length;
+  document.getElementById('plist').innerHTML=players.map((p,i)=>`
+    <div class="pr">
+      <div class="pdot" style="background:${cols[i%6]}"></div>
+      <div class="pname">${esc(p.name)}${p.id===myId?' <span style="font-size:11px;opacity:.5">(вы)</span>':''}</div>
+      ${p.host?'<div class="host-tag">Хост</div>':''}
+    </div>`).join('');
+}
+function renderPackGrid(){
+  document.getElementById('pack-grid').innerHTML=Object.entries(PINFO).map(([id,inf])=>{
+    const locked=!inf.free&&!subbed;
+    return `<div class="pack-itm${locked?' locked':''}${selPack===id?' sel':''}"
+      onclick="${locked?`openSub()`:`selPack('${id}')`}">
+      ${locked?'<div class="pi-lk">🔒</div>':''}
+      <div class="pi-i">${inf.free?'⚖️':'📦'}</div>
+      <div class="pi-n">${inf.name}</div>
+      <div class="pi-t" style="color:${inf.free?'#065540':locked?'#C44472':'#1B3A6B'}">${inf.free?'Бесплатно':locked?'Подписка':'Доступно'}</div>
+    </div>`;
+  }).join('');
+}
+function selPack(id){selPack=id;renderPackGrid();haptic();}
+function updateStart(){
+  const btn=document.getElementById('start-btn'),info=document.getElementById('lob-info');
+  if(amHost){
+    btn.style.display=players.length>=2?'block':'none';
+    info.textContent=players.length<2?'Ожидаем игроков (нужно минимум 2)':'Все готовы? Начинайте!';
+  }else{
+    btn.style.display='none';
+    info.textContent='Ожидаем, когда хост начнёт игру...';
+  }
+}
+function doStart(){haptic('medium');sock.emit('start',{code,pack:selPack});}
+function shareRoom(){
+  haptic();
+  const url=`${location.origin}?room=${code}`;
+  if(TG?.shareUrl){
+    TG.shareUrl(url,`Присоединяйся к игре «Юристика»! Код: ${code}`);
+  } else if(navigator.share){
+    navigator.share({title:'Юристика',text:`Код: ${code}`,url});
+  } else {
+    navigator.clipboard?.writeText(url).then(()=>toast('Ссылка скопирована!')).catch(()=>prompt('Ссылка:',url));
+  }
+}
+function goHome(){history.replaceState({},'','/');show('s-home');gs=null;}
+
+// ── GAME ──────────────────────────────────────────────────────────────────
+function renderGame(){
+  if(!gs)return;
+  renderTopbar(); renderBoard(); renderAction();
+}
+function renderTopbar(){
+  document.getElementById('topbar').innerHTML=gs.players.map((p,i)=>`
+    <div class="chip${i===gs.cur?' cur':''}">
+      <div class="cdot" style="background:${p.color}"></div>
+      <span>${esc(p.name)}${p.sid===myId?' (вы)':''}</span>
+      <span class="cpts">${p.score}б</span>
+    </div>`).join('');
+}
+function renderBoard(){
+  const p=gs.players[gs.cur],myTurn=p.sid===myId;
+  let center='';
+  if(gs.phase==='roll'){
+    center=`<div class="bc-t"${myTurn?` style="color:${p.color}"`:''}>${myTurn?'Ваш ход!':'Ход: '+esc(p.name)}</div>
+      <div class="bc-s">${myTurn?'Нажмите кубик':'Ожидайте...'}</div>
+      <button class="dice" id="dbtn" onclick="doRoll()" ${myTurn?'':'disabled'}>🎲</button>
+      <div class="dval">${gs.dice?DF[gs.dice-1]:''}</div>`;
+  }else if(gs.phase==='wait'){
+    center=`<div class="bc-t" style="color:${p.color}">${esc(p.name)}</div>
+      <div class="dval">${gs.dice?DF[gs.dice-1]:''}</div>
+      <div class="bc-n">${gs.notif||''}</div>`;
+  }else{
+    center=`<div class="bc-t" style="color:${p.color}">${esc(p.name)}</div>
+      <div class="bc-s">Читает карточку...</div><div style="font-size:24px;opacity:.28">🎲</div>`;
+  }
+  let cells='';
+  CELL_POS.forEach(([col,row],idx)=>{
+    const t=CELL_T[idx];
+    const here=gs.players.filter(pl=>pl.pos===idx);
+    const toks=here.map(pl=>`<div class="tok" style="background:${pl.color}"></div>`).join('');
+    cells+=`<div class="cell c-${t}" style="grid-column:${col};grid-row:${row}">
+      <span class="ci">${CI[t]||''}</span><span>${CL[t]||t}</span>
+      <div class="toks">${toks}</div></div>`;
+  });
+  document.getElementById('board').innerHTML=`<div class="bcenter">${center}</div>${cells}`;
+}
+function renderAction(){
+  const p=gs.players[gs.cur],myTurn=p.sid===myId;
+  const iHost=players.find(pl=>pl.id===myId)?.host;
+  let html='';
+  if(gs.phase==='card'&&gs.card){
+    if(iHost) html=`<div class="ga-t">Карточка активна</div><div class="ga-s">${esc(p.name)} отвечает. Оцените в карточке.</div>`;
+    else if(myTurn) html=`<div class="ga-t">Ваша карточка!</div><div class="ga-s">Ответьте вслух — ведущий оценит.</div>`;
+    else html=`<div class="ga-t">${esc(p.name)} отвечает</div><div class="ga-s">Наблюдайте за карточкой.</div>`;
+  }else if(gs.phase==='vote'&&gs.card){
+    const mv=gs.votes?.[myId];
+    if(myTurn) html=`<div class="ga-t">Идёт голосование</div><div class="ga-s">Другие игроки оценивают вас.</div>`;
+    else if(mv) html=`<div class="ga-t">Ваш голос: <span class="vbadge">${mv==='for'?'✓ За':'✗ Против'}</span></div>`;
+    else html=`<div class="ga-t">Проголосуйте!</div><div class="ga-s">Убедительно ли ${esc(p.name)}?</div>`;
+  }else if(gs.phase==='roll'){
+    html=myTurn?`<div class="ga-t">Ваш ход — бросьте кубик</div>`:
+      `<div class="ga-t">Ход: ${esc(p.name)}</div><div class="ga-s">Ожидайте своей очереди</div>`;
+  }else if(gs.phase==='wait'){
+    html=`<div class="ga-t">${gs.notif||'Ход завершён'}</div>`;
+  }
+  document.getElementById('action').innerHTML=html;
+}
+function doRoll(){
+  haptic('medium'); sock.emit('roll',{code});
+  const b=document.getElementById('dbtn');
+  if(b){b.classList.add('spinning');setTimeout(()=>b.classList.remove('spinning'),420);}
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function renderModal(){
+  if(!gs?.card)return;
+  const card=gs.card,t=card.type;
+  const p=gs.players[gs.cur],iHost=players.find(pl=>pl.id===myId)?.host,myTurn=p.sid===myId;
+  const maxSec=t==='судья'?60:30;
+  if(!tmr) startTimer(maxSec);
+  const pct=Math.max(0,(tsec/maxSec)*100);
+  let body='';
+  if(t==='термин')       body=`<div class="mword">${esc(card.word)}</div><div class="msub">Объясните своими словами.</div>`;
+  else if(t==='кодекс')  body=`<div class="mq">${esc(card.q)}</div><div class="msub">Ответ скрыт — откроется в подсказке.</div>`;
+  else                   body=`<div class="mq">${esc(card.text||card.q||'')}</div>`;
+  const hintFull=card.hint+(t==='кодекс'&&card.a?`<br><br><strong>✓ Ответ: ${esc(card.a)}</strong>`:'');
+  let actions='';
+  if(t==='судья'){
+    if(!myTurn){
+      const mv=gs.votes?.[myId];
+      actions=mv?`<div class="vstatus">Ваш голос: <span class="vbadge">${mv==='for'?'✓ За':'✗ Против'}</span><br>Ожидаем остальных...</div>`
+        :`<div class="row2"><button class="btn green sm" onclick="doVote('for')">✓ За +3</button><button class="btn red sm" onclick="doVote('against')">✗ Против</button></div>`;
+    }else{
+      const tot=players.length-1,voted=Object.keys(gs.votes||{}).length;
+      actions=`<div class="vstatus">Голосование: ${voted}/${tot}</div>`;
+    }
+  }else if(iHost){
+    actions=`<button class="btn sec sm" onclick="showHint()" style="margin-bottom:10px">💡 Подсказка${t==='кодекс'?' / ответ':''}</button>
+      <div class="row2"><button class="btn green sm" onclick="doAns(true)">✓ Верно +2</button><button class="btn red sm" onclick="doAns(false)">✗ Неверно</button></div>`;
+  }else{
+    actions=`<button class="btn sec sm" onclick="showHint()">💡 Подсказка</button>
+      <div class="vstatus">Ведущий оценивает...</div>`;
+  }
+  openModal(`<div class="mbadge mb-${t}">${TL[t]}</div>
+    ${body}
+    <div class="tbar-wrap"><div class="tbar" id="tbar" style="width:${pct}%"></div></div>
+    <div class="tlbl" id="tlbl">⏱ ${tsec} сек.</div>
+    <div class="hint-box" id="hbox">${hintFull}</div>
+    ${actions}`);
+}
+function startTimer(sec){
+  clearInterval(tmr); tsec=sec; const max=sec;
+  tmr=setInterval(()=>{
+    tsec--;
+    const b=document.getElementById('tbar'),l=document.getElementById('tlbl');
+    if(b){b.style.width=Math.max(0,(tsec/max)*100)+'%';b.style.background=tsec<=10?'#C44472':tsec<=(max/2)?'#C9A84C':'';}
+    if(l)l.textContent=tsec>0?`⏱ ${tsec} сек.`:'⏱ Время вышло!';
+    if(tsec<=0){clearInterval(tmr);tmr=null;hapticNotif('warning');showHint();}
+  },1000);
+}
+function showHint(){document.getElementById('hbox')?.classList.add('vis');}
+function doAns(ok){haptic(ok?'medium':'light');clearInterval(tmr);tmr=null;sock.emit('answer',{code,ok});closeModal();}
+function doVote(v){haptic();sock.emit('vote',{code,v});}
+function openModal(html){document.getElementById('mcontent').innerHTML=html;document.getElementById('modal').style.display='flex';}
+function closeModal(){clearInterval(tmr);tmr=null;document.getElementById('modal').style.display='none';}
+
+// ── SUBSCRIBE ─────────────────────────────────────────────────────────────
+function openSub(){
+  haptic();
+  const packs=Object.entries(PINFO).filter(([,v])=>!v.free).map(([,v])=>`<div class="sp">📦 ${v.name}</div>`).join('');
+  openModal(`<div class="sub-hero">
+    <div class="sub-i">🎓</div>
+    <div class="sub-ttl">Расширенные пакеты</div>
+    <div class="sub-sub">Разблокируйте 4 тематических набора по отраслям права</div>
+  </div>
+  <div class="sub-packs">${packs}</div>
+  <div class="price-row">
+    <button class="price-btn" onclick="selPr(this)"><div class="pb-p">299 ₽</div><div class="pb-s">в месяц</div></button>
+    <button class="price-btn sel" onclick="selPr(this)"><div class="pb-p">1 990 ₽</div><div class="pb-s">в год</div><div class="pb-sv">−44%</div></button>
+  </div>
+  <button class="btn" onclick="activateSub()">Оформить подписку</button>
+  <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--tg-hint)">Безопасная оплата · Отмена в любой момент</div>`);
+}
+function selPr(el){document.querySelectorAll('.price-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');haptic();}
+function activateSub(){subbed=true;localStorage.setItem('ys','1');closeModal();renderPackGrid();toast('✅ Подписка активирована!');}
+
+// ── WINNER ────────────────────────────────────────────────────────────────
+function renderWinner(){
+  show('s-winner');
+  const s=[...gs.players].sort((a,b)=>b.score-a.score);
+  const m=['🥇','🥈','🥉','4.','5.','6.'];
+  document.getElementById('win-inner').innerHTML=`
+    <div class="trophy">🏆</div>
+    <div class="w-lbl">Победитель</div>
+    <div class="w-name">${esc(s[0].name)}</div>
+    <div class="w-scores">${s.map((p,i)=>`<div class="w-row">
+      <div class="w-rank${i===0?' g':''}">${m[i]}</div>
+      <div class="w-dot" style="background:${p.color}"></div>
+      <div class="w-pn">${esc(p.name)}</div>
+      <div class="w-pts">${p.score}</div></div>`).join('')}</div>
+    <button class="btn" onclick="playAgain()">Сыграть ещё раз</button>`;
+}
+function playAgain(){history.replaceState({},'','/');show('s-home');gs=null;}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0);}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(msg){
+  const n=document.createElement('div');
+  n.textContent=msg;
+  Object.assign(n.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+    background:'var(--tg-btn)',color:'var(--tg-btnTxt)',padding:'10px 18px',
+    borderRadius:'20px',fontSize:'13px',fontWeight:'600',zIndex:'999',
+    whiteSpace:'nowrap',boxShadow:'0 4px 16px rgba(0,0,0,.2)',transition:'opacity .3s'});
+  document.body.appendChild(n);
+  setTimeout(()=>{n.style.opacity='0';setTimeout(()=>n.remove(),300);},2500);
+}
+</script>
+</body>
+</html>
