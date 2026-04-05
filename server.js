@@ -6,7 +6,13 @@ const path    = require('path');
 
 const app    = express();
 const server = http.createServer(app);
-const io     = new Server(server, { cors: { origin: '*' } });
+const io     = new Server(server, {
+  cors: { origin: '*', methods: ['GET','POST'] },
+  transports: ['polling', 'websocket'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (_q, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
